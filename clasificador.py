@@ -10,26 +10,37 @@ def limpiar_texto(texto):
     return texto_limpio.strip()
 
 def clasificar_sentimiento(texto):
-    """HU03 y HU06: Clasifica una reseña basada en palabras clave."""
+    """HU03 y HU06: Clasifica una reseña basada en palabras clave exactas (Refactorizado)."""
     texto_procesado = limpiar_texto(texto)
     
     if not texto_procesado:
         return "Vacio"
 
-    # Vocabulario extendido de palabras clave
-    positivas = ["bueno", "excelente", "genial", "limpio", "amable", "perfecto", "comoda", "bonita", "hermosa", "aceptable"]
-    negativas = ["malo", "sucio", "tarde", "roto", "feo", "horrible", "pesima", "ruido", "desastre", "caro", "peor", "mal"]
+    # XP Refactor: Separamos el texto en palabras exactas para evitar falsos positivos (ej: 'mal' en 'normal')
+    palabras_usuario = texto_procesado.split()
+
+    # Vocabulario extendido incluyendo variaciones de genero y numero (Mejora de Calidad Técnica)
+    positivas = [
+        "bueno", "buena", "buenos", "buenas", "excelente", "excelentes", "genial", "geniales", 
+        "limpio", "limpia", "limpios", "limpias", "amable", "amables", "perfecto", "perfecta", 
+        "comoda", "comodo", "bonita", "bonito", "hermosa", "hermoso", "aceptable", "gigante"
+    ]
+    negativas = [
+        "malo", "mala", "malos", "malas", "sucio", "sucia", "sucios", "sucias", "tarde", 
+        "roto", "rota", "rotos", "rotas", "feo", "fea", "horrible", "horribles", "pesima", 
+        "pesimo", "ruido", "desastre", "caro", "cara", "peor", "mal", "lento", "lenta"
+    ]
     
-    # Contar coincidencias
-    conteo_pos = sum(1 for p in positivas if p in texto_procesado)
-    conteo_neg = sum(1 for n in negativas if n in texto_procesado)
+    # Contar coincidencias por palabra exacta
+    conteo_pos = sum(1 for p in palabras_usuario if p in positivas)
+    conteo_neg = sum(1 for p in palabras_usuario if p in negativas)
     
     if conteo_pos > conteo_neg:
         return "Positiva"
     elif conteo_neg > conteo_pos:
         return "Negativa"
     else:
-        return "Neutral" # Si empata o no encuentra palabras clave
+        return "Neutral"
 
 def procesar_archivo(archivo_ruta):
     """HU01 y HU05: Procesa el archivo TXT y genera el reporte estadistico."""
@@ -48,7 +59,7 @@ def procesar_archivo(archivo_ruta):
     return resultados, totales
 
 # =====================================================================
-# PRUEBAS UNITARIAS (Requisito XP - TDD)
+# PRUEBAS UNITARIAS ACTUALIZADAS (XP - TDD)
 # =====================================================================
 def ejecutar_pruebas_tdd():
     """HU04: Pruebas automatizadas para validar el comportamiento del sistema."""
@@ -57,32 +68,28 @@ def ejecutar_pruebas_tdd():
     # Prueba 1: Verificar clasificacion positiva
     assert clasificar_sentimiento("Excelente servicio y habitacion muy limpia") == "Positiva"
     
-    # Prueba 2: Verificar clasificacion negativa
-    assert clasificar_sentimiento("El cuarto estaba sucio y la atencion fue pesima") == "Negativa"
+    # Prueba 2: Verificar clasificacion negativa con flexión de número (las sábanas rotas)
+    assert clasificar_sentimiento("Las sabanas estaban rotas") == "Negativa"
     
-    # Prueba 3: Verificar manejo de textos neutrales (HU06)
-    assert clasificar_sentimiento("El desayuno estuvo regular") == "Neutral"
+    # Prueba 3: Verificar que 'normal' NO se confunda con 'mal' (Asegurar precisión)
+    assert clasificar_sentimiento("Un hotel normal") == "Neutral"
     
-    # Prueba 4: Verificar limpieza de texto (HU02)
+    # Prueba 4: Verificar limpieza de texto
     assert limpiar_texto("¡HOLA, Mundo!!!") == "hola mundo"
     
     print("✅ Todas las pruebas unitarias pasaron exitosamente.\n")
 
 if __name__ == "__main__":
-    # 1. Ejecutar primero las pruebas (Enfoque XP)
     ejecutar_pruebas_tdd()
     
-    # 2. Procesar el archivo de reseñas real
     archivo = "resenas.txt"
-    print(# Reporte por pantalla
-    f"📊 PROCESANDO ARCHIVO: {archivo}")
+    print(f"📊 PROCESANDO ARCHIVO REFACTORIZADO: {archivo}")
     print("-" * 50)
     
     lineas_procesadas, reporte_estadistico = procesar_archivo(archivo)
     
     for resena, sent in lineas_procesadas:
-        print(# Muestra cada reseña clasificada
-        f"[{sent}] -> {resena}")
+        print(f"[{sent}] -> {resena}")
         
     print("-" * 50)
     print("📈 REPORTE ESTADÍSTICO FINAL:")
